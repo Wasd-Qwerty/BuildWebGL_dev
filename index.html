@@ -69,7 +69,7 @@
       z-index: 20;
     }
 
-    /* Оверлей "тапни чтобы включить fullscreen" */
+    /* Оверлей старта */
     #start-overlay {
       position: absolute;
       inset: 0;
@@ -89,7 +89,6 @@
       cursor: pointer;
     }
 
-    /* Мобильная подсказка: не даём выделять текст */
     #start-overlay, #start-overlay * {
       -webkit-user-select: none;
       user-select: none;
@@ -110,7 +109,7 @@
   <div id="unity-warning"></div>
 
   <div id="start-overlay">
-    <button id="start-button">Tap to start (fullscreen)</button>
+    <button id="start-button">Tap to start</button>
   </div>
 </div>
 
@@ -128,7 +127,7 @@
     if (type === "error") div.style = "background: red; padding: 10px;";
     else {
       if (type === "warning") div.style = "background: yellow; padding: 10px;";
-      setTimeout(function () {
+      setTimeout(() => {
         warningBanner.removeChild(div);
         updateBannerVisibility();
       }, 5000);
@@ -151,18 +150,36 @@
     showBanner: unityShowBanner,
   };
 
-  // Мобилка: Unity шаблон обычно меняет классы, но мы и так делаем 100%
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     document.querySelector("#unity-container").className = "unity-mobile";
     canvas.className = "unity-mobile";
-    // Можно понизить DPR для производительности:
-    // config.devicePixelRatio = 1;
+    // config.devicePixelRatio = 1; // опционально
   }
 
-  // Показываем лоадер
   document.querySelector("#unity-loading-bar").style.display = "block";
 
   let unityInstanceRef = null;
+
+  // Пытаемся включить настоящий fullscreen, но НЕ падаем, если запрещено (Telegram WebView и т.п.)
+  async function tryFullscreen() {
+    try {
+      if (!document.fullscreenEnabled) return false;
+
+      const el = canvas; // или document.querySelector("#unity-container")
+      const req =
+              el.requestFullscreen ||
+              el.webkitRequestFullscreen ||
+              el.mozRequestFullScreen ||
+              el.msRequestFullscreen;
+
+      if (!req) return false;
+
+      await req.call(el);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   const script = document.createElement("script");
   script.src = loaderUrl;
@@ -173,39 +190,20 @@
     }).then((unityInstance) => {
       unityInstanceRef = unityInstance;
 
-      // Скрываем лоадер
       document.querySelector("#unity-loading-bar").style.display = "none";
 
-      // Показываем оверлей "тапни чтобы включить fullscreen"
       const overlay = document.querySelector("#start-overlay");
+      const startBtn = document.querySelector("#start-button");
+
       overlay.style.display = "flex";
 
-      const start = () => {
-        // Настоящий fullscreen можно только по клику/тапу
-        const tryFullscreen = async () => {
-          // Если окружение запрещает fullscreen (часто Telegram webview) — просто выходим
-          if (!document.fullscreenEnabled) return false;
-
-          try {
-            const el = canvas; // можно и unity-container
-            const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-            if (!req) return false;
-
-            await req.call(el);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        };
-
-        const start = async () => {
-          overlay.style.display = "none";
-          await tryFullscreen(); // если нельзя — ничего страшного, игра просто останется на весь экран страницы
-          canvas.focus();
-        };
+      const start = async () => {
+        overlay.style.display = "none";
+        await tryFullscreen(); // если нельзя — просто игнор
+        canvas.focus();
       };
 
-      document.querySelector("#start-button").addEventListener("click", start, { once: true });
+      startBtn.addEventListener("click", start, { once: true });
       overlay.addEventListener("click", start, { once: true });
 
     }).catch((message) => {
