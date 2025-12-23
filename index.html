@@ -21,6 +21,10 @@
       touch-action: none;
     }
 
+    #unity-canvas { position: absolute; inset: 0; z-index: 1; }
+    #start-overlay { z-index: 9999; pointer-events: auto; }
+    #start-overlay button { position: relative; z-index: 10000; }
+
     #unity-container {
       position: fixed;
       inset: 0;
@@ -196,8 +200,10 @@
       const startBtn = document.querySelector("#start-button");
 
       overlay.style.display = "flex";
-
+      canvas.style.pointerEvents = "none";
+      
       const start = async () => {
+        canvas.style.pointerEvents = "auto";
         overlay.style.display = "none";
         await tryFullscreen(); // если нельзя — просто игнор
         canvas.focus();
