@@ -2,26 +2,23 @@
 <html lang="en-us">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Unity Web Player | ludo-miner</title>
 
   <link rel="shortcut icon" href="TemplateData/favicon.ico" />
   <link rel="stylesheet" href="TemplateData/style.css" />
 
-  <!-- ВАЖНО: нормальный viewport для мобилок -->
   <meta name="viewport"
-        content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes" />
+        content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no" />
 
   <!-- Telegram WebApp API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    /* Делаем всё на 100% экрана */
     html, body {
-      width: 100%;
-      height: 100%;
       margin: 0;
       padding: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: #000;
     }
@@ -38,76 +35,73 @@
       height: 100% !important;
       display: block;
       background: #000;
-      outline: none;
     }
 
-    /* Если тебе не нужен футер — можно скрыть */
-    /* #unity-footer { display:none !important; } */
+    /* Overlay для первого тапа */
+    #fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0);
+      cursor: pointer;
+    }
+
+    #fullscreen-hint {
+      position: absolute;
+      bottom: 12%;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      font-size: 16px;
+      opacity: 0.8;
+    }
   </style>
 </head>
 
 <body>
-<div id="unity-container" class="unity-mobile">
+
+<div id="unity-container">
   <canvas id="unity-canvas" tabindex="-1"></canvas>
 
   <div id="unity-loading-bar">
-    <div id="unity-logo"></div>
     <div id="unity-progress-bar-empty">
       <div id="unity-progress-bar-full"></div>
     </div>
   </div>
+</div>
 
-  <div id="unity-warning"></div>
-
-  <div id="unity-footer">
-    <div id="unity-logo-title-footer"></div>
-    <div id="unity-fullscreen-button"></div>
-    <div id="unity-build-title">ludo-miner</div>
-  </div>
+<!-- Overlay для fullscreen -->
+<div id="fullscreen-overlay">
+  <div id="fullscreen-hint">Нажмите, чтобы начать</div>
 </div>
 
 <script>
-  // --- Telegram WebApp: авто-разворачивание ---
-  (function initTelegram() {
-    if (window.Telegram && Telegram.WebApp) {
-      Telegram.WebApp.ready();
+  const tg = window.Telegram?.WebApp;
 
-      // Развернуть WebApp максимально (главное для твоей задачи)
-      Telegram.WebApp.expand();
-
-      // По желанию:
-      // Telegram.WebApp.disableVerticalSwipes(); // меньше случайных свайпов вниз
-      // Telegram.WebApp.enableClosingConfirmation(); // спросит при закрытии
-    }
-  })();
-
-  var canvas = document.querySelector("#unity-canvas");
-
-  function unityShowBanner(msg, type) {
-    var warningBanner = document.querySelector("#unity-warning");
-    function updateBannerVisibility() {
-      warningBanner.style.display = warningBanner.children.length ? "block" : "none";
-    }
-    var div = document.createElement("div");
-    div.innerHTML = msg;
-    warningBanner.appendChild(div);
-
-    if (type === "error") div.style = "background: red; padding: 10px;";
-    else {
-      if (type === "warning") div.style = "background: yellow; padding: 10px;";
-      setTimeout(function () {
-        warningBanner.removeChild(div);
-        updateBannerVisibility();
-      }, 5000);
-    }
-    updateBannerVisibility();
+  if (tg) {
+    tg.ready();
+    tg.expand(); // старый expand — ОК как fallback
   }
 
-  var buildUrl = "Build";
-  var loaderUrl = buildUrl + "/BuildWebGL.loader.js";
+  const canvas = document.querySelector("#unity-canvas");
+  const overlay = document.getElementById("fullscreen-overlay");
 
-  var config = {
-    arguments: [],
+  // Новый fullscreen — ТОЛЬКО по действию пользователя
+  overlay.addEventListener("click", () => {
+    if (tg?.requestFullscreen) {
+      tg.requestFullscreen();
+    }
+    overlay.remove(); // убираем после первого клика
+  }, { once: true });
+
+  function unityShowBanner(msg, type) {
+    console.warn(msg);
+  }
+
+  const buildUrl = "Build";
+  const loaderUrl = buildUrl + "/BuildWebGL.loader.js";
+
+  const config = {
     dataUrl: buildUrl + "/BuildWebGL.data.unityweb",
     frameworkUrl: buildUrl + "/BuildWebGL.framework.js.unityweb",
     codeUrl: buildUrl + "/BuildWebGL.wasm.unityweb",
@@ -118,45 +112,21 @@
     showBanner: unityShowBanner
   };
 
-  // Если хочешь принудительно понизить DPR на мобилке:
-  // config.devicePixelRatio = 1;
-
   document.querySelector("#unity-loading-bar").style.display = "block";
 
-  var script = document.createElement("script");
+  const script = document.createElement("script");
   script.src = loaderUrl;
 
   script.onload = () => {
     createUnityInstance(canvas, config, (progress) => {
       document.querySelector("#unity-progress-bar-full").style.width = (100 * progress) + "%";
-    }).then((unityInstance) => {
+    }).then(() => {
       document.querySelector("#unity-loading-bar").style.display = "none";
-
-      // Кнопка fullscreen Unity (работает там, где браузер позволяет)
-      var fsBtn = document.querySelector("#unity-fullscreen-button");
-      if (fsBtn) {
-        fsBtn.onclick = () => {
-          // В Telegram может быть ограничено, но пусть будет
-          unityInstance.SetFullscreen(1);
-
-          // И ещё раз expand на случай если Telegram был свернут
-          if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.expand();
-          }
-        };
-      }
-
-      // Важно: при изменении размеров/повороте просто оставляем canvas 100%
-      window.addEventListener("resize", () => {
-        if (window.Telegram && Telegram.WebApp) Telegram.WebApp.expand();
-      });
-
-    }).catch((message) => {
-      alert(message);
-    });
+    }).catch(alert);
   };
 
   document.body.appendChild(script);
 </script>
+
 </body>
 </html>
