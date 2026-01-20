@@ -37,7 +37,7 @@
       background: #000;
     }
 
-    /* Overlay для первого тапа */
+    /*!* Overlay для первого тапа *!
     #fullscreen-overlay {
       position: fixed;
       inset: 0;
@@ -54,7 +54,7 @@
       color: #fff;
       font-size: 16px;
       opacity: 0.8;
-    }
+    }*/
   </style>
 </head>
 
@@ -71,22 +71,22 @@
 </div>
 
 <!-- Overlay для fullscreen -->
+<!--
 <div id="fullscreen-overlay">
   <div id="fullscreen-hint">Нажмите, чтобы начать</div>
 </div>
+-->
 
 <script>
   const tg = window.Telegram?.WebApp;
-  if (tg?.requestFullscreen) {
-    tg.requestFullscreen();
-  }
+  
   if (tg) {
     tg.ready();
     tg.expand(); // старый expand — ОК как fallback
   }
 
   const canvas = document.querySelector("#unity-canvas");
-  const overlay = document.getElementById("fullscreen-overlay");
+  /*const overlay = document.getElementById("fullscreen-overlay");
 
   // Новый fullscreen — ТОЛЬКО по действию пользователя
   overlay.addEventListener("click", () => {
@@ -94,7 +94,7 @@
       tg.requestFullscreen();
     }
     overlay.remove(); // убираем после первого клика
-  }, { once: true });
+  }, { once: true });*/
 
   function unityShowBanner(msg, type) {
     console.warn(msg);
