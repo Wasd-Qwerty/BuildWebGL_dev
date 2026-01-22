@@ -1,0 +1,28 @@
+{
+    "mode": "main",
+    "engine_mode": "local",
+    "stage": {
+        "endpoints": [
+            "https://shellnet.ackinacki.org/"
+        ],
+        "appId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "apiUrl": "https://app-backend-dev.ackinacki.org/api/"
+    },
+    "main": {
+        "endpoints": [
+            "https://mainnet.ackinacki.org/"
+        ],
+        "appId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "apiUrl": "https://api.ackinacki.org/api/"
+    },
+    "engine": {
+        "local": {
+            "js_path": "bee_sdk.js",
+            "wasm_path": "bee_sdk_bg.wasm"
+        },
+        "inApp": {
+            "js_path": "bee_sdk.js",
+            "wasm_path": "/bee_sdk_bg.wasm"
+        }
+    }
+}
