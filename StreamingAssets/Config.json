@@ -5,14 +5,14 @@
         "endpoints": [
             "https://shellnet.ackinacki.org/"
         ],
-        "appId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "appId": "0x0000000000000000000000000000000000000000000000000000000000000003",
         "apiUrl": "https://app-backend-dev.ackinacki.org/api/"
     },
     "main": {
         "endpoints": [
             "https://mainnet.ackinacki.org/"
         ],
-        "appId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "appId": "0x0000000000000000000000000000000000000000000000000000000000000003",
         "apiUrl": "https://api.ackinacki.org/api/"
     },
     "engine": {
