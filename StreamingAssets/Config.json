@@ -1,6 +1,6 @@
 {
-    "mode": "main",
-    "engine_mode": "local",
+    "mode": "stage",
+    "engine_mode": "inApp",
     "stage": {
         "endpoints": [
             "https://shellnet.ackinacki.org/"
