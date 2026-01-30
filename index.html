@@ -8,12 +8,6 @@
     <link rel="stylesheet" href="TemplateData/style.css">
   </head>
   <body>
-    <!-- Loading music audio element -->
-    <audio id="loading-music" loop preload="auto">
-      <source src="StreamingAssets/Audio/LoadingMusic.ogg" type="audio/ogg">
-      <source src="StreamingAssets/Audio/LoadingMusic.mp3" type="audio/mpeg">
-    </audio>
-
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=480 height=800 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -31,81 +25,6 @@
     </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
-      var loadingMusic = document.getElementById("loading-music");
-      var loadingMusicStarted = false;
-      var loadingMusicVolume = 0.5; // Default volume (0-1)
-
-      // Try to start loading music (may fail due to autoplay policy)
-      function tryPlayLoadingMusic() {
-        if (loadingMusicStarted) return;
-        loadingMusic.volume = loadingMusicVolume;
-        var playPromise = loadingMusic.play();
-        if (playPromise !== undefined) {
-          playPromise.then(function() {
-            loadingMusicStarted = true;
-            console.log("Loading music started");
-          }).catch(function(error) {
-            console.log("Autoplay prevented, waiting for user interaction");
-          });
-        }
-      }
-
-      // Start music on any user interaction (click/touch)
-      function onUserInteraction() {
-        tryPlayLoadingMusic();
-        document.removeEventListener('click', onUserInteraction);
-        document.removeEventListener('touchstart', onUserInteraction);
-      }
-      document.addEventListener('click', onUserInteraction);
-      document.addEventListener('touchstart', onUserInteraction);
-
-      // Try autoplay immediately
-      tryPlayLoadingMusic();
-
-      // Function for Unity to call to fade out loading music
-      function fadeOutLoadingMusic(duration) {
-        if (!loadingMusic || loadingMusic.paused) return;
-        duration = duration || 1.0; // Default 1 second fade
-        var startVolume = loadingMusic.volume;
-        var startTime = Date.now();
-        
-        function fade() {
-          var elapsed = (Date.now() - startTime) / 1000;
-          var progress = Math.min(elapsed / duration, 1);
-          loadingMusic.volume = startVolume * (1 - progress);
-          
-          if (progress < 1) {
-            requestAnimationFrame(fade);
-          } else {
-            loadingMusic.pause();
-            loadingMusic.currentTime = 0;
-            console.log("Loading music faded out");
-          }
-        }
-        fade();
-      }
-
-      // Function for Unity to call to stop loading music immediately
-      function stopLoadingMusic() {
-        if (loadingMusic) {
-          loadingMusic.pause();
-          loadingMusic.currentTime = 0;
-          console.log("Loading music stopped");
-        }
-      }
-
-      // Function for Unity to set loading music volume
-      function setLoadingMusicVolume(volume) {
-        loadingMusicVolume = Math.max(0, Math.min(1, volume));
-        if (loadingMusic) {
-          loadingMusic.volume = loadingMusicVolume;
-        }
-      }
-
-      // Expose functions globally for Unity to call via jslib
-      window.fadeOutLoadingMusic = fadeOutLoadingMusic;
-      window.stopLoadingMusic = stopLoadingMusic;
-      window.setLoadingMusicVolume = setLoadingMusicVolume;
 
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
