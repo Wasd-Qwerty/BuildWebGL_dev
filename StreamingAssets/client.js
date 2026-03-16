@@ -1,5 +1,3 @@
-/* @ts-self-types="./client.d.ts" */
-
 /**
  * @param {any} data
  * @returns {any}
